@@ -136,6 +136,29 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         }
         return {DOMAIN: attrs}
 
+    async def async_refresh_fault_history(self) -> None:
+        """Read Xiaomi's recent fault events without modifying cloud messages."""
+        cloud = self.coordinator.cloud
+        if cloud is None:
+            raise ServiceValidationError(
+                "Xiaomi cloud is not connected; fault history is unavailable"
+            )
+        from ..cloud import XiaomiCloudAuthError, XiaomiCloudError
+
+        try:
+            events = await cloud.async_fault_history(limit=50)
+        except XiaomiCloudAuthError as exc:
+            self.coordinator.config_entry.async_start_reauth(self.hass)
+            raise ServiceValidationError(
+                "Xiaomi cloud session expired; reconnect before reading fault history"
+            ) from exc
+        except XiaomiCloudError as exc:
+            raise ServiceValidationError(
+                "Xiaomi cloud fault history could not be read"
+            ) from exc
+        self.coordinator.fault_history = events
+        self.coordinator.async_update_listeners()
+
     def _assert_cleaning_start_allowed(self) -> None:
         """Refuse a new cleaning job when the model reports an active blocker."""
         blocked = self.spec.active_cleaning_blockers(self.coordinator.data)
