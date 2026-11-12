@@ -281,7 +281,8 @@ class _XiaomiCloudConnector:
     def get_device_fault_messages(
         self, country: str, did: str, limit: int = 50
     ) -> list[dict[str, str | int]]:
-        """Read historical fault notices without changing their read status.
+        """
+        Read historical fault notices without changing their read status.
 
         Only MIoT Device Fault (2.3) notifications are returned. We do not
         expose the raw cloud response, user IDs, device IDs or session data.
@@ -315,7 +316,10 @@ class _XiaomiCloudConnector:
             if not isinstance(value, list) or not value:
                 continue
             try:
-                code = int(value[0])
+                raw_code = value[0]
+                if not isinstance(raw_code, (str, int, float)):
+                    continue
+                code = int(raw_code)
             except (ValueError, TypeError):
                 continue
             if code <= 0:
