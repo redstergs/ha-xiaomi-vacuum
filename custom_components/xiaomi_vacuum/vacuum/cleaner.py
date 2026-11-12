@@ -18,6 +18,7 @@ from homeassistant.helpers.translation import async_get_translations
 
 from ..api import CleaningZone  # noqa: TID252
 from ..const import DOMAIN, LOGGER  # noqa: TID252
+from ..cloud import XiaomiCloudAuthError, XiaomiCloudError  # noqa: TID252
 from ..entity import XiaomiVacuumEntity  # noqa: TID252
 from .start_custom_cleaning import async_update_custom_cleaning_options
 
@@ -140,22 +141,18 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         """Read Xiaomi's recent fault events without modifying cloud messages."""
         cloud = self.coordinator.cloud
         if cloud is None:
-            raise ServiceValidationError(
-                "Xiaomi cloud is not connected; fault history is unavailable"
-            )
-        from ..cloud import XiaomiCloudAuthError, XiaomiCloudError
+            msg = "Xiaomi cloud is not connected; fault history is unavailable"
+            raise ServiceValidationError(msg)  # noqa: TRY003
 
         try:
             events = await cloud.async_fault_history(limit=50)
         except XiaomiCloudAuthError as exc:
             self.coordinator.config_entry.async_start_reauth(self.hass)
-            raise ServiceValidationError(
-                "Xiaomi cloud session expired; reconnect before reading fault history"
-            ) from exc
+            msg = "Xiaomi cloud session expired; reconnect before reading fault history"
+            raise ServiceValidationError(msg) from exc  # noqa: TRY003
         except XiaomiCloudError as exc:
-            raise ServiceValidationError(
-                "Xiaomi cloud fault history could not be read"
-            ) from exc
+            msg = "Xiaomi cloud fault history could not be read"
+            raise ServiceValidationError(msg) from exc  # noqa: TRY003
         self.coordinator.fault_history = events
         self.coordinator.async_update_listeners()
 
@@ -163,9 +160,9 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         """Refuse a new cleaning job when the model reports an active blocker."""
         blocked = self.spec.active_cleaning_blockers(self.coordinator.data)
         if blocked:
-            raise ServiceValidationError(
-                f"Cleaning blocked by active device fault(s): {', '.join(map(str, sorted(blocked)))}"
-            )
+            codes = ", ".join(map(str, sorted(blocked)))
+            msg = f"Cleaning blocked by active device fault(s): {codes}"
+            raise ServiceValidationError(msg)  # noqa: TRY003
 
     async def async_start(self) -> None:
         """
