@@ -74,4 +74,5 @@ class XiaomiVacuumErrorCodeSensor(XiaomiVacuumEntity, SensorEntity):
                 else None
             ),
             "fault_text": data.get("fault_text"),
+            "cloud_fault_history": self.coordinator.fault_history,
         }
