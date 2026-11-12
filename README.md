@@ -325,3 +325,40 @@ This integration is built and maintained on personal time, on hardware bought fo
 ## License
 
 [MIT](LICENSE)
+
+
+### S40 Pro: cleaning interlock and fault diagnostics (development branch)
+
+On the S40 Pro, a **new** cleaning request is rejected when the live fault list
+reports a physically removed water tank (`210020`) or dust bin (`210013`).
+All active codes are checked, not just the one displayed by the Error sensor.
+Existing cleaning jobs are not stopped; pause, stop, returning to dock and
+resuming are not prohibited. Normal low-water warnings (`100025`) do not
+prevent cleaning, and the S40 Pro's phantom dock code (`100027`) is ignored.
+Additional critical codes will only be enabled after model-specific verification.
+
+The `error_code` sensor retains its existing numeric state and exposes these
+additional diagnostic attributes:
+
+- `active_fault_codes`: non-ignored live fault IDs
+- `raw_fault_codes`: all IDs including phantom dock faults
+- `ignored_fault_codes`: omitted phantom fault IDs
+- `cleaning_blocking_fault_codes`: IDs preventing a new cleaning job
+- `cloud_fault_history`: recent historical events, only after explicit refresh
+
+To fetch older cloud messages on demand, run this action in **Developer Tools →
+Actions**:
+
+```yaml
+action: xiaomi_vacuum.refresh_fault_history
+target:
+  entity_id: vacuum.your_xiaomi_vacuum
+```
+
+Replace the entity ID with your actual vacuum entity. Inspect
+`sensor.<vacuum_name>_error_code` under **Developer Tools → States** and
+expand the `cloud_fault_history` attribute. History requires the Xiaomi cloud
+session and is kept in memory only, until HA reload/restart or next refresh.
+This read-only action requests up to 50 Xiaomi Device Fault messages; it does
+not mark messages as read. Cloud history availability depends on Xiaomi's
+retention and response. It does not provide a complete permanent archive.
