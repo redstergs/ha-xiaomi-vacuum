@@ -320,7 +320,7 @@ class _XiaomiCloudConnector:
                 if not isinstance(raw_code, (str, int, float)):
                     continue
                 code = int(raw_code)
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 continue
             if code <= 0:
                 continue
