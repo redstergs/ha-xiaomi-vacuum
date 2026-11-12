@@ -238,9 +238,7 @@ class XiaomiCloud:
             params,
         )
 
-    async def async_fault_history(
-        self, limit: int = 50
-    ) -> list[dict[str, str | int]]:
+    async def async_fault_history(self, limit: int = 50) -> list[dict[str, str | int]]:
         """Return redacted historical fault events; read-only and on demand."""
         if not self._logged_in or self._device is None:
             return []
