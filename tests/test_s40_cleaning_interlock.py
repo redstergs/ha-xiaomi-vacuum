@@ -2,6 +2,7 @@
 
 Only codes observed on physical S40 Pro hardware are included.
 """
+
 from __future__ import annotations
 
 import json
@@ -37,11 +38,13 @@ async def test_new_s40_clean_is_rejected_before_device_call(
     hass, setup_integration_ov71, mock_miot_device_ov71, code
 ):
     coordinator = setup_integration_ov71.runtime_data.coordinator
-    coordinator.async_set_updated_data({
-        **coordinator.data,
-        "status": 9,
-        "fault_ids": json.dumps({"fault": [100027, code]}),
-    })
+    coordinator.async_set_updated_data(
+        {
+            **coordinator.data,
+            "status": 9,
+            "fault_ids": json.dumps({"fault": [100027, code]}),
+        }
+    )
     await hass.async_block_till_done()
     entity = XiaomiVacuum(coordinator=coordinator)
     entity.hass = hass
@@ -66,10 +69,12 @@ async def test_return_home_and_resume_are_not_blocked(
     hass, setup_integration_ov71, mock_miot_device_ov71
 ):
     coordinator = setup_integration_ov71.runtime_data.coordinator
-    coordinator.async_set_updated_data({
-        **coordinator.data,
-        "fault_ids": '{"fault":[210005]}',
-    })
+    coordinator.async_set_updated_data(
+        {
+            **coordinator.data,
+            "fault_ids": '{"fault":[210005]}',
+        }
+    )
     await hass.async_block_till_done()
     entity = XiaomiVacuum(coordinator=coordinator)
     entity.hass = hass
@@ -82,13 +87,15 @@ async def test_nonblocking_water_warning_does_not_block_new_clean(
     hass, setup_integration_ov71, mock_miot_device_ov71
 ):
     coordinator = setup_integration_ov71.runtime_data.coordinator
-    coordinator.async_set_updated_data({
-        **coordinator.data,
-        "status": 9,
-        "fault_ids": '{"fault":[100027]}',
-        "fault": 0,
-        "fault_text": "Insufficient water. Refill the water tank in time",
-    })
+    coordinator.async_set_updated_data(
+        {
+            **coordinator.data,
+            "status": 9,
+            "fault_ids": '{"fault":[100027]}',
+            "fault": 0,
+            "fault_text": "Insufficient water. Refill the water tank in time",
+        }
+    )
     await hass.async_block_till_done()
     entity = XiaomiVacuum(coordinator=coordinator)
     entity.hass = hass
