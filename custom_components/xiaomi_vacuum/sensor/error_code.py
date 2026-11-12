@@ -42,7 +42,7 @@ class XiaomiVacuumErrorCodeSensor(XiaomiVacuumEntity, SensorEntity):
         if isinstance(raw, str):
             try:
                 payload = json.loads(raw)
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 payload = None
             values = payload.get("fault") if isinstance(payload, dict) else None
             codes = (
@@ -52,8 +52,10 @@ class XiaomiVacuumErrorCodeSensor(XiaomiVacuumEntity, SensorEntity):
             )
         else:
             code = data.get("fault")
-            codes = [code] if type(code) is int and code > 0 else (
-                [] if code == 0 else None
+            codes = (
+                [code]
+                if type(code) is int and code > 0
+                else ([] if code == 0 else None)
             )
         spec = self.coordinator.spec
         actionable = (
