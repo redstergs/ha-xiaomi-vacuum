@@ -204,7 +204,8 @@ class ModelSpec:
         )
 
     def active_cleaning_blockers(self, data: VacuumState | None) -> frozenset[int]:
-        """Find every configured blocking code in the live fault payload.
+        """
+        Find every configured blocking code in the live fault payload.
 
         Unlike the display fault, this checks all codes, not just the first.
         Invalid or unavailable payloads never manufacture a fault code.
@@ -219,7 +220,9 @@ class ModelSpec:
                 parsed = json.loads(raw)
             except (ValueError, TypeError):
                 return frozenset()
-            if not isinstance(parsed, dict) or not isinstance(parsed.get("fault"), list):
+            if not isinstance(parsed, dict) or not isinstance(
+                parsed.get("fault"), list
+            ):
                 return frozenset()
             codes = parsed["fault"]
         else:
