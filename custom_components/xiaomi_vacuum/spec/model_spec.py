@@ -218,7 +218,7 @@ class ModelSpec:
                 return frozenset()
             try:
                 parsed = json.loads(raw)
-            except (ValueError, TypeError):
+            except ValueError, TypeError:
                 return frozenset()
             if not isinstance(parsed, dict) or not isinstance(
                 parsed.get("fault"), list
