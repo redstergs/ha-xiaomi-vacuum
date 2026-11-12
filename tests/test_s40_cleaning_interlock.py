@@ -84,7 +84,7 @@ async def test_return_home_and_resume_are_not_blocked(
 
 
 @pytest.mark.parametrize("nonblocking_code", [100025, 210005])
-async def test_nonblocking_water_warning_does_not_block_new_clean(
+async def test_nonblocking_fault_does_not_block_new_clean(
     hass, setup_integration_ov71, mock_miot_device_ov71, nonblocking_code
 ):
     coordinator = setup_integration_ov71.runtime_data.coordinator
@@ -94,7 +94,6 @@ async def test_nonblocking_water_warning_does_not_block_new_clean(
             "status": 9,
             "fault_ids": json.dumps({"fault": [100027, nonblocking_code]}),
             "fault": 0,
-            "fault_text": "Insufficient water. Refill the water tank in time",
         }
     )
     await hass.async_block_till_done()
