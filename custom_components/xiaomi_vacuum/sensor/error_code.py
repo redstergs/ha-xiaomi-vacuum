@@ -29,7 +29,8 @@ class XiaomiVacuumErrorCodeSensor(XiaomiVacuumEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self) -> dict[str, object]:
-        """Show all live fault IDs, including ones hidden from the headline code.
+        """
+        Show all live fault IDs, including ones hidden from the headline code.
 
         The normal fault sensor exposes the highest-priority code only.  This
         diagnostic view retains the complete payload for investigation without
