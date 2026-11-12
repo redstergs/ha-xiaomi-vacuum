@@ -330,7 +330,7 @@ This integration is built and maintained on personal time, on hardware bought fo
 ### S40 Pro: cleaning interlock and fault diagnostics (development branch)
 
 On the S40 Pro, a **new** cleaning request is rejected when the live fault list
-reports a physically removed water tank (`210020`) or dust bin (`210005`).
+reports a physically removed water tank (`210020`) or dust bin (`210013`).
 All active codes are checked, not just the one displayed by the Error sensor.
 Existing cleaning jobs are not stopped; pause, stop, returning to dock and
 resuming are not prohibited. Normal low-water warnings (`100025`) do not
