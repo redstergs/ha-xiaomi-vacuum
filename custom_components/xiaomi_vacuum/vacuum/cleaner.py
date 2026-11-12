@@ -17,8 +17,8 @@ from homeassistant.exceptions import ServiceValidationError
 from homeassistant.helpers.translation import async_get_translations
 
 from ..api import CleaningZone  # noqa: TID252
-from ..const import DOMAIN, LOGGER  # noqa: TID252
 from ..cloud import XiaomiCloudAuthError, XiaomiCloudError  # noqa: TID252
+from ..const import DOMAIN, LOGGER  # noqa: TID252
 from ..entity import XiaomiVacuumEntity  # noqa: TID252
 from .start_custom_cleaning import async_update_custom_cleaning_options
 
@@ -142,17 +142,17 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         cloud = self.coordinator.cloud
         if cloud is None:
             msg = "Xiaomi cloud is not connected; fault history is unavailable"
-            raise ServiceValidationError(msg)  # noqa: TRY003
+            raise ServiceValidationError(msg)
 
         try:
             events = await cloud.async_fault_history(limit=50)
         except XiaomiCloudAuthError as exc:
             self.coordinator.config_entry.async_start_reauth(self.hass)
             msg = "Xiaomi cloud session expired; reconnect before reading fault history"
-            raise ServiceValidationError(msg) from exc  # noqa: TRY003
+            raise ServiceValidationError(msg) from exc
         except XiaomiCloudError as exc:
             msg = "Xiaomi cloud fault history could not be read"
-            raise ServiceValidationError(msg) from exc  # noqa: TRY003
+            raise ServiceValidationError(msg) from exc
         self.coordinator.fault_history = events
         self.coordinator.async_update_listeners()
 
@@ -162,7 +162,7 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         if blocked:
             codes = ", ".join(map(str, sorted(blocked)))
             msg = f"Cleaning blocked by active device fault(s): {codes}"
-            raise ServiceValidationError(msg)  # noqa: TRY003
+            raise ServiceValidationError(msg)
 
     async def async_start(self) -> None:
         """
