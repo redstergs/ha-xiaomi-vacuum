@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import TYPE_CHECKING
 
 import voluptuous as vol
+from homeassistant.core import SupportsResponse
 from homeassistant.helpers import config_validation as cv
 from homeassistant.helpers import entity_platform
 
@@ -69,5 +70,6 @@ async def async_setup_entry(
         SERVICE_REFRESH_FAULT_HISTORY,
         cv.make_entity_service_schema({}),
         "async_refresh_fault_history",
+        supports_response=SupportsResponse.ONLY,
     )
     await async_refresh_custom_cleaning_options(hass, entry)

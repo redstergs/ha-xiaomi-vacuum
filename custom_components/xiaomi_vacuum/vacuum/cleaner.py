@@ -137,7 +137,9 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         }
         return {DOMAIN: attrs}
 
-    async def async_refresh_fault_history(self) -> None:
+    async def async_refresh_fault_history(
+        self,
+    ) -> dict[str, list[dict[str, str | int]]]:
         """Read Xiaomi's recent fault events without modifying cloud messages."""
         cloud = self.coordinator.cloud
         if cloud is None:
@@ -153,8 +155,7 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         except XiaomiCloudError as exc:
             msg = "Xiaomi cloud fault history could not be read"
             raise ServiceValidationError(msg) from exc
-        self.coordinator.fault_history = events
-        self.coordinator.async_update_listeners()
+        return {"fault_history": events}
 
     async def async_start(self) -> None:
         """
