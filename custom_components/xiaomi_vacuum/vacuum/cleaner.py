@@ -225,8 +225,7 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
                 translation_key="send_command_params_unsupported",
                 translation_placeholders={"command": command},
             )
-        if command in {"start_only_sweep", "start_mop", "start_sweep_mop"}:
-            await self._client.async_call_action(action["siid"], action["aiid"])
+        await self._client.async_call_action(action["siid"], action["aiid"])
         self._schedule_refresh()
 
     async def async_set_fan_speed(self, fan_speed: str, **kwargs: object) -> None:  # noqa: ARG002
