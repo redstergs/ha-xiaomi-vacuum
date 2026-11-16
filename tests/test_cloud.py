@@ -1052,3 +1052,32 @@ def test_get_device_fault_messages_handles_malformed_feed():
     connector = _XiaomiCloudConnector()
     with patch.object(connector, "_encrypted_call", return_value={"result": {}}):
         assert connector.get_device_fault_messages("de", "did") == []
+
+
+def test_fault_history_limits_results_and_requests_strict_http_status():
+    connector = _XiaomiCloudConnector()
+    message = {"params": {"body": {"event": "2.3", "value": [100025]}}}
+    response = {"result": {"messages": [message] * 60}}
+    with patch.object(connector, "_encrypted_call", return_value=response) as call:
+        assert len(connector.get_device_fault_messages("de", "did", 100)) == 50
+    assert json.loads(call.call_args.args[1]["data"])["limit"] == 50
+    assert call.call_args.kwargs["raise_for_status"] is True
+
+
+def test_fault_history_skips_invalid_messages():
+    connector = _XiaomiCloudConnector()
+    messages = [
+        None,
+        {"params": []},
+        *[
+            {"params": {"body": {"event": "2.3", "value": [code]}}}
+            for code in (False, -1, 0, "invalid", float("inf"), 1.5)
+        ],
+        {"params": {"body": {"event": "2.3", "extra": ["100025"]}}, "time": 123},
+    ]
+    with patch.object(
+        connector, "_encrypted_call", return_value={"result": {"messages": messages}}
+    ):
+        assert connector.get_device_fault_messages("de", "did") == [
+            {"code": 100025, "timestamp": 123}
+        ]
