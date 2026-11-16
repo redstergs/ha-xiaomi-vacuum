@@ -133,37 +133,91 @@
                     "washing_paused": "Мойка швабры приостановлена"
                 }
             },
-            "error": {"name": "Неисправность"},
-            "error_code": {"name": "Код ошибки"},
-            "mop_life": {"name": "Оставшийся ресурс швабры"},
-            "side_brush_life": {"name": "Оставшийся ресурс боковой щётки"},
-            "filter_life": {"name": "Оставшийся ресурс фильтра"},
-            "main_brush_life": {"name": "Оставшийся ресурс основной щётки"},
-            "main_brush_time_left": {"name": "Оставшийся срок службы основной щётки"},
-            "side_brush_time_left": {"name": "Оставшийся срок службы боковой щётки"},
-            "filter_time_left": {"name": "Оставшийся срок службы фильтра"},
-            "mop_time_left": {"name": "Оставшийся срок службы швабры"},
-            "drying_time_left": {"name": "Остаток времени сушки"},
-            "total_clean_time": {"name": "Общее время уборки"},
-            "total_clean_count": {"name": "Всего уборок"},
-            "total_clean_area": {"name": "Общая площадь уборки"}
+            "error": {
+                "name": "Неисправность"
+            },
+            "error_code": {
+                "name": "Код ошибки"
+            },
+            "mop_life": {
+                "name": "Оставшийся ресурс швабры"
+            },
+            "side_brush_life": {
+                "name": "Оставшийся ресурс боковой щётки"
+            },
+            "filter_life": {
+                "name": "Оставшийся ресурс фильтра"
+            },
+            "main_brush_life": {
+                "name": "Оставшийся ресурс основной щётки"
+            },
+            "main_brush_time_left": {
+                "name": "Оставшийся срок службы основной щётки"
+            },
+            "side_brush_time_left": {
+                "name": "Оставшийся срок службы боковой щётки"
+            },
+            "filter_time_left": {
+                "name": "Оставшийся срок службы фильтра"
+            },
+            "mop_time_left": {
+                "name": "Оставшийся срок службы швабры"
+            },
+            "drying_time_left": {
+                "name": "Остаток времени сушки"
+            },
+            "total_clean_time": {
+                "name": "Общее время уборки"
+            },
+            "total_clean_count": {
+                "name": "Всего уборок"
+            },
+            "total_clean_area": {
+                "name": "Общая площадь уборки"
+            }
         },
         "button": {
-            "dust_arrest": {"name": "Собрать пыль"},
-            "start_mop_wash": {"name": "Вымыть швабру"},
-            "stop_mop_wash": {"name": "Остановить мойку швабры"},
-            "start_dry": {"name": "Высушить швабру"},
-            "stop_dry": {"name": "Остановить сушку швабры"},
-            "reset_main_brush": {"name": "Сбросить ресурс основной щётки"},
-            "reset_side_brush": {"name": "Сбросить ресурс боковой щётки"},
-            "reset_filter": {"name": "Сбросить ресурс фильтра"},
-            "reset_mop": {"name": "Сбросить ресурс швабры"}
+            "dust_arrest": {
+                "name": "Собрать пыль"
+            },
+            "start_mop_wash": {
+                "name": "Вымыть швабру"
+            },
+            "stop_mop_wash": {
+                "name": "Остановить мойку швабры"
+            },
+            "start_dry": {
+                "name": "Высушить швабру"
+            },
+            "stop_dry": {
+                "name": "Остановить сушку швабры"
+            },
+            "reset_main_brush": {
+                "name": "Сбросить ресурс основной щётки"
+            },
+            "reset_side_brush": {
+                "name": "Сбросить ресурс боковой щётки"
+            },
+            "reset_filter": {
+                "name": "Сбросить ресурс фильтра"
+            },
+            "reset_mop": {
+                "name": "Сбросить ресурс швабры"
+            }
         },
         "binary_sensor": {
-            "cleaning": {"name": "Идёт уборка"},
-            "mop_pad": {"name": "Насадка для влажной уборки"}
+            "cleaning": {
+                "name": "Идёт уборка"
+            },
+            "mop_pad": {
+                "name": "Насадка для влажной уборки"
+            }
         },
-        "image": {"map": {"name": "Карта"}},
+        "image": {
+            "map": {
+                "name": "Карта"
+            }
+        },
         "select": {
             "sweep_mop_type": {
                 "name": "Режим",
@@ -208,12 +262,24 @@
             }
         },
         "switch": {
-            "child_lock": {"name": "Блокировка от детей"},
-            "carpet_boost": {"name": "Усиление мощности на коврах"},
-            "resume_after_charge": {"name": "Продолжать уборку после зарядки"},
-            "do_not_disturb": {"name": "Не беспокоить"}
+            "child_lock": {
+                "name": "Блокировка от детей"
+            },
+            "carpet_boost": {
+                "name": "Усиление мощности на коврах"
+            },
+            "resume_after_charge": {
+                "name": "Продолжать уборку после зарядки"
+            },
+            "do_not_disturb": {
+                "name": "Не беспокоить"
+            }
         },
-        "number": {"volume": {"name": "Громкость"}}
+        "number": {
+            "volume": {
+                "name": "Громкость"
+            }
+        }
     },
     "exceptions": {
         "mop_mode_requires_pad": {
@@ -239,6 +305,15 @@
         },
         "custom_cleaning_not_found": {
             "message": "Пользовательский сценарий уборки «{name}» не найден. Доступные варианты: {available}."
+        },
+        "fault_history_cloud_unavailable": {
+            "message": "Нет подключения к облаку Xiaomi. Подключитесь к облаку перед получением истории ошибок."
+        },
+        "fault_history_session_expired": {
+            "message": "Сеанс подключения к облаку Xiaomi истёк. Подключитесь заново перед получением истории ошибок."
+        },
+        "fault_history_read_failed": {
+            "message": "Не удалось получить историю ошибок из облака Xiaomi."
         }
     },
     "services": {
@@ -265,11 +340,13 @@
                     "description": "Название пользовательского сценария уборки в приложении Mi Home. Регистр букв не учитывается."
                 }
             }
+        },
+        "refresh_fault_history": {
+            "name": "Обновить историю ошибок",
+            "description": "Получает до 50 последних событий об ошибках устройства из облака Xiaomi, не отмечая уведомления как прочитанные. Возвращает события в ответе действия. Требуется активное подключение к облаку."
         }
     },
     "common": {
         "unnamed_room": "Комната {id}"
     }
 }
-
-

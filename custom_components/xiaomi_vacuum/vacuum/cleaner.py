@@ -143,18 +143,24 @@ class XiaomiVacuum(XiaomiVacuumEntity, StateVacuumEntity):
         """Read Xiaomi's recent fault events without modifying cloud messages."""
         cloud = self.coordinator.cloud
         if cloud is None:
-            msg = "Xiaomi cloud is not connected; fault history is unavailable"
-            raise ServiceValidationError(msg)
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="fault_history_cloud_unavailable",
+            )
 
         try:
             events = await cloud.async_fault_history(limit=50)
         except XiaomiCloudAuthError as exc:
             self.coordinator.config_entry.async_start_reauth(self.hass)
-            msg = "Xiaomi cloud session expired; reconnect before reading fault history"
-            raise ServiceValidationError(msg) from exc
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="fault_history_session_expired",
+            ) from exc
         except XiaomiCloudError as exc:
-            msg = "Xiaomi cloud fault history could not be read"
-            raise ServiceValidationError(msg) from exc
+            raise ServiceValidationError(
+                translation_domain=DOMAIN,
+                translation_key="fault_history_read_failed",
+            ) from exc
         return {"fault_history": events}
 
     async def async_start(self) -> None:
