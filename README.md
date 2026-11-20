@@ -21,6 +21,7 @@ for you — and for the **map image** and the **localized error messages**.
 |-------|----------|-------|
 | Xiaomi Robot Vacuum S20+ | `xiaomi.vacuum.b108gl` | Plain charging dock |
 | Xiaomi Robot Vacuum S40 Pro | `xiaomi.vacuum.ov71gl` | Plain charging dock; export-only, so it is not listed when the cloud region is set to China |
+| Xiaomi Robot Vacuum S40C | `xiaomi.vacuum.e101gb` | Plain charging dock (E101CDZ) and a mop tank on the robot. Same layout as the S40 Pro |
 | Xiaomi Robot Vacuum X20+ | `xiaomi.vacuum.c102gl` | Built by Dreame with its own MIoT layout; self-emptying, mop-washing dock |
 | Xiaomi Robot Vacuum X20 Max | `xiaomi.vacuum.d109gl` | Self-emptying, mop-washing dock |
 
@@ -31,34 +32,41 @@ to add one yourself, see [`ADDING_A_MODEL.md`](ADDING_A_MODEL.md).
 
 ### What each model supports
 
-| Feature | S20+ | S40 Pro | X20+ | X20 Max |
-|---------|:----:|:-------:|:----:|:-------:|
-| Start, pause, stop, return to dock, locate, fan speed | ✅ | ✅ | ✅ | ✅ |
-| Battery, status, error and consumable life sensors | ✅ | ✅ | ✅ | ✅ |
-| Mop pad and cleaning-in-progress sensors | ✅ | ✅ | ✅ | ✅ |
-| Room cleaning with Home Assistant areas | ✅ | ✅ | ✅ ¹ | ✅ |
-| Map image | ✅ | ✅ | ✅ ² | ✅ |
-| Cleaning mode and mop water level selects | ✅ | ✅ | ✅ ³ | ✅ |
-| Clean repetitions select | 1–2 | 1–3 | — | 1–3 |
-| Sweep route and obstacle avoidance selects | — | ✅ | — | ✅ |
-| Zone cleaning (`xiaomi_vacuum.clean_zone`) | — | ✅ ⁵ | — | ✅ |
-| Custom cleanings (`xiaomi_vacuum.start_custom_cleaning`) | — | — | — | ✅ |
-| Empty the dust bin into the dock | — | — | ✅ | ✅ |
-| Wash and dry the mop in the dock | — | — | ✅ ⁴ | ✅ |
-| Consumable hours left and reset buttons | — | ✅ | ✅ | ✅ |
-| Mop drying time left and lifetime cleaning statistics | — | — | ✅ | — |
-| Child lock, carpet boost, resume after charging, do not disturb | — | — | ✅ | — |
-| Voice volume | — | — | ✅ | — |
+| Feature | S20+ | S40 Pro | S40C | X20+ | X20 Max |
+|---------|:----:|:-------:|:----:|:----:|:-------:|
+| Start, pause, stop, return to dock, locate, fan speed | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Battery, status, error and consumable life sensors | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Mop pad and cleaning-in-progress sensors | ✅ | ✅ | ✅ | ✅ | ✅ |
+| Room cleaning with Home Assistant areas | ✅ | ✅ | ✅ ⁷ | ✅ ¹ | ✅ |
+| Map image | ✅ | ✅ | ✅ | ✅ ² | ✅ |
+| Cleanup mode and mopping water output selects | ✅ | ✅ | ✅ | ✅ ³ | ✅ |
+| Clean repetitions select | 1–2 | 1–3 | 1–3 | — | 1–3 |
+| Cleanup path and obstacle avoidance selects | — | ✅ | ✅ | — | ✅ |
+| Zone cleaning (`xiaomi_vacuum.clean_zone`) | — | ✅ ⁵ | ✅ ⁷ | — | ✅ |
+| Custom cleanings (`xiaomi_vacuum.start_custom_cleaning`) | — | — | — | — | ✅ |
+| Empty the dust bin into the dock | — | — | — | ✅ | ✅ |
+| Wash and dry the mop in the dock | — | — | — | ✅ ⁴ | ✅ |
+| Consumable hours left and reset buttons | — | ✅ | ✅ | ✅ | ✅ |
+| Mop drying time left and lifetime cleaning statistics | — | — | — | ✅ | — |
+| Child lock, carpet boost, cleanup resumption, do not disturb | — | ✅ ⁶ | ✅ ⁶ | ✅ | ✅ |
+| Voice volume | — | ✅ ⁶ | ✅ ⁶ | ✅ | ✅ |
+| Dock settings: auto mop cleaning, its frequency, water output and temperature, drying duration, automatic dust collection and its frequency, auto mop drying | — | — | — | — | ✅ |
+| Carpet cleanup preference select | — | ✅ ⁶ | ✅ ⁶ | — | ✅ |
 
 1. The X20+ room list is read from the cloud map. Rooms left unnamed in Mi
    Home are listed as "Room N", as in the app.
 2. The X20+ map shows the saved floor plan and the dock, without the live robot
    position or path.
-3. The X20+ mop water level has no *Off* option.
+3. The X20+ mopping water output has no *Off* option.
 4. The X20+ dock can start washing the mop but not stop it.
 5. The S40 Pro uses the X20 Max rectangle command path. Real-device user
    testing on 10 November 2026 confirmed that the S40 Pro cleaned 20 selected
    rectangles in response to the zone-cleaning command.
+6. Published by the S40 Pro and S40C specs at the X20 Max addresses, not yet
+   confirmed on either unit.
+7. The S40C uses the S40 Pro room and rectangle commands. A physical unit on
+   firmware 4.5.6_0111 published its room list. On 14 November 2026 it cleaned
+   a selected rectangle and a selected room.
 
 ## Features
 
@@ -82,6 +90,50 @@ to add one yourself, see [`ADDING_A_MODEL.md`](ADDING_A_MODEL.md).
   show on these sensors without switching the vacuum entity to `error`.
 - **Optimistic updates** — actions are reflected right away, and a background
   refresh confirms the vacuum's state about 5 seconds later.
+
+### Fault diagnostics
+
+The existing `error_code` diagnostic sensor retains its numeric state and
+exposes the following additional attributes:
+
+- `raw_fault_codes`: all reported positive fault codes, before model-specific filtering.
+- `active_fault_codes`: reported codes not ignored by the model.
+- `ignored_fault_codes`: reported codes ignored by the model.
+- `fault_text`: localized text for the primary fault, when available.
+
+An empty list indicates that no codes were reported in that category; unknown
+or invalid fault data is represented by null. The primary fault keeps its
+existing priority: regular faults take precedence over routine notices.
+
+The `xiaomi_vacuum.refresh_fault_history` action manually reads up to 50 recent
+Device Fault events from the Xiaomi cloud without marking notifications as read.
+An active cloud connection is required. The action returns response data only;
+it does not add history to entity state attributes or request a coordinator
+refresh.
+
+For example, in a Home Assistant script or automation:
+
+```yaml
+- action: xiaomi_vacuum.refresh_fault_history
+  target:
+    entity_id: vacuum.your_xiaomi_vacuum
+  response_variable: xiaomi_fault_history
+```
+
+Home Assistant groups the response by vacuum entity ID. Each event includes
+its numeric code and, when available, localized text and a Unix timestamp:
+
+```yaml
+vacuum.your_xiaomi_vacuum:
+  fault_history:
+    - code: 100025
+      text: "Insufficient water"
+      timestamp: 1794441000
+```
+
+The same action can target multiple vacuum entities. Xiaomi determines which
+messages remain available; this is not a permanent fault archive. History is
+not retrieved automatically or stored in the integration's entity state.
 
 ## Requirements
 
@@ -150,7 +202,7 @@ the English names are shown below.
 | `sensor.<name>_error` | All | Localized fault text (`OK` when healthy) |
 | `sensor.<name>_error_code` | All | Raw fault code (`0` when healthy) |
 | `sensor.<name>_mop_life`, `_main_brush_life`, `_side_brush_life`, `_filter_life` | All | Consumable life left (%) |
-| `sensor.<name>_mop_time_left`, `_main_brush_time_left`, `_side_brush_time_left`, `_filter_time_left` | S40 Pro, X20+, X20 Max | Consumable hours left |
+| `sensor.<name>_mop_time_left`, `_main_brush_time_left`, `_side_brush_time_left`, `_filter_time_left` | S40 Pro, S40C, X20+, X20 Max | Consumable hours left |
 | `sensor.<name>_drying_time_left` | X20+ | Minutes of mop drying left |
 | `sensor.<name>_total_cleaning_time`, `_total_cleanings`, `_total_cleaned_area` | X20+ | Lifetime cleaning statistics |
 | `binary_sensor.<name>_charging` | All | Whether the battery is charging |
@@ -158,15 +210,25 @@ the English names are shown below.
 | `binary_sensor.<name>_cleaning_in_progress` | All | Whether a cleaning job is underway, including mop washes and recharges in the middle of a job |
 | `select.<name>_mode` | All | Sweep, Mop, Sweep and mop, Sweep before mopping |
 | `select.<name>_mop_water_level` | All | Off (except X20+), Level 1–3 |
-| `select.<name>_clean_times` | S20+, S40 Pro, X20 Max | Once, Twice, Three times (not on the S20+) |
-| `select.<name>_sweep_route` | S40 Pro, X20 Max | Quick, Standard, Deep |
-| `select.<name>_obstacle_avoidance` | S40 Pro, X20 Max | Less collisions, High coverage |
+| `select.<name>_clean_times` | S20+, S40 Pro, S40C, X20 Max | Once, Twice, Three times (not on the S20+) |
+| `select.<name>_sweep_route` | S40 Pro, S40C, X20 Max | Quick, Standard, Deep |
+| `select.<name>_obstacle_avoidance` | S40 Pro, S40C, X20 Max | Less collisions, High coverage |
 | `button.<name>_collect_dust` | X20+, X20 Max | Empties the dust bin into the dock |
 | `button.<name>_wash_mop`, `_dry_mop`, `_stop_drying_mop` | X20+, X20 Max | Washes or dries the mop in the dock |
 | `button.<name>_stop_washing_mop` | X20 Max | Stops washing the mop |
-| `button.<name>_reset_main_brush`, `_reset_side_brush`, `_reset_filter`, `_reset_mop` | S40 Pro, X20+, X20 Max | Resets a consumable after replacing it |
-| `switch.<name>_child_lock`, `_carpet_boost`, `_resume_after_charging`, `_do_not_disturb` | X20+ | Device settings |
-| `number.<name>_volume` | X20+ | Voice volume, 0–100 % |
+| `button.<name>_reset_main_brush`, `_reset_side_brush`, `_reset_filter`, `_reset_mop` | S40 Pro, S40C, X20+, X20 Max | Resets a consumable after replacing it |
+| `switch.<name>_child_lock`, `_carpet_boost`, `_resume_after_charging`, `_do_not_disturb` | S40 Pro, S40C, X20+, X20 Max | Device settings |
+| `number.<name>_volume` | S40 Pro, S40C, X20+, X20 Max | Voice volume, 0–100 % |
+| `switch.<name>_mop_washing` | X20 Max | Washes the mop at the dock during a mopping job |
+| `select.<name>_mop_washing_frequency` | X20 Max | Every room, By area, By time |
+| `select.<name>_mop_washing_area_interval` | X20 Max | 5–25 m² mopped between two washes (*By area*) |
+| `number.<name>_mop_washing_time_interval` | X20 Max | Minutes mopped between two washes (*By time*) |
+| `select.<name>_mop_drying_time` | X20 Max | 2, 3 or 4 hours |
+| `switch.<name>_auto_empty_dust_bin`, `_auto_dry_mop` | X20 Max | Empty the dust bin and dry the mop at the dock after each job |
+| `select.<name>_mop_washing_water` | X20 Max | Deep, Daily, Save water |
+| `select.<name>_mop_washing_water_temperature` | X20 Max | Normal, Warm, Hot, Smart |
+| `select.<name>_auto_empty_frequency` | X20 Max | Every job, Every 2 jobs, Every 3 jobs |
+| `select.<name>_carpet_cleaning` | S40 Pro, S40C, X20 Max | Adaptive, Avoid, Ignore, Cross |
 
 The vacuum entity also exposes raw MIoT diagnostics as extra state attributes
 under the `xiaomi_vacuum` key.
@@ -184,7 +246,7 @@ reports the reason instead of letting the select snap back.
 | Command | Models |
 |---------|--------|
 | `continue_sweep` | All |
-| `start_only_sweep`, `start_mop`, `start_sweep_mop` | S20+, S40 Pro, X20 Max |
+| `start_only_sweep`, `start_mop`, `start_sweep_mop` | S20+, S40 Pro, S40C, X20 Max |
 | `start_mop_wash`, `start_dry`, `stop_dry` | X20+, X20 Max |
 | `stop_mop_wash` | X20 Max |
 
@@ -219,7 +281,7 @@ fails with the list of cleanings the vacuum reports.
 
 ### Cleaning zones
 
-On the X20 Max and S40 Pro, the `xiaomi_vacuum.clean_zone` action sends one or more
+On the X20 Max, S40 Pro and S40C, the `xiaomi_vacuum.clean_zone` action sends one or more
 rectangles, each given as two opposite corners `[x1, y1, x2, y2]` in the
 vacuum's millimetre coordinates, with an optional number of repeats:
 
@@ -242,7 +304,7 @@ reads. The card resolves its map source through the entity's `entity_picture`,
 so the `image` entity can be used directly.
 
 The card's built-in interactive modes call other integrations' services and do
-not work here. On the X20 Max and S40 Pro, a custom map mode drives zone cleaning instead:
+not work here. On the X20 Max, S40 Pro and S40C, a custom map mode drives zone cleaning instead:
 
 ```yaml
 type: custom:xiaomi-vacuum-map-card

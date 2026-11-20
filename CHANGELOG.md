@@ -1,5 +1,30 @@
 # Changelog
 
+## [2.14.0](https://github.com/roquerodrigo/ha-xiaomi-vacuum/compare/v2.13.0...v2.14.0) (2026-11-16)
+
+Adds support for the Xiaomi Robot Vacuum S40C, aligns entity names with the Xiaomi Home app, and reorganizes entity categories on the device page.
+
+### New features
+
+- Added support for the Xiaomi Robot Vacuum S40C (xiaomi.vacuum.e101gb), including room cleaning, zone cleaning, selects, and consumable sensors. ([#181](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/181))
+
+### Improvements
+
+- Entity names, select options, fan speeds and status labels now match the wording of the Xiaomi Home app; entity IDs, history and automations are unaffected. ([#190](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/190))
+- Dock and carpet settings of the X20 Max were renamed to the Xiaomi Home app wording, such as Auto mop cleaning and Automatic dust collection. ([#190](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/190))
+- The Cleanup mode and Cleanup times selects now appear under Controls instead of Configuration on the device page. ([#191](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/191))
+- The battery, error and consumable life sensors now appear under Sensors instead of Diagnostic; entity IDs are unchanged. ([#191](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/191))
+
+## [2.13.0](https://github.com/roquerodrigo/ha-xiaomi-vacuum/compare/v2.12.0...v2.13.0) (2026-11-16)
+
+The X20 Max gains many dock and robot settings from the Mi Home app, and the S40 Pro gets several of them.
+
+### New features
+
+- X20 Max: new controls for the dock, including mop washing on/off, its frequency, area and time intervals, mop drying time, auto-empty dust bin and auto-dry mop. ([#182](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/182))
+- X20 Max: new selects for mop washing water, mop washing water temperature, auto-empty frequency and carpet cleaning method. ([#182](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/182))
+- X20 Max and S40 Pro now offer carpet boost, resume after charging, child lock, do not disturb and voice volume settings; the S40 Pro also offers the carpet cleaning method. ([#182](https://github.com/roquerodrigo/ha-xiaomi-vacuum/pull/182))
+
 ## [2.12.0](https://github.com/roquerodrigo/ha-xiaomi-vacuum/compare/v2.11.1...v2.12.0) (2026-11-12)
 
 The S40 Pro gains rectangle zone cleaning, and the integration adds Russian translations.

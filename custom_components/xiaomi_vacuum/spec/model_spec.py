@@ -46,6 +46,13 @@ MAPPING_FIELDS: tuple[str, ...] = (
     "charging_state_slugs",
     "sweep_routes",
     "obstacle_avoidances",
+    "mop_wash_frequencies",
+    "mop_wash_area_intervals",
+    "mop_drying_times",
+    "mop_wash_water_modes",
+    "mop_wash_temperatures",
+    "dust_collection_frequencies",
+    "carpet_cleaning_methods",
 )
 
 
@@ -68,6 +75,13 @@ class ModelSpec:
     charging_state_slugs: dict[int, str] = field(default_factory=dict)
     sweep_routes: dict[str, int] = field(default_factory=dict)
     obstacle_avoidances: dict[str, int] = field(default_factory=dict)
+    mop_wash_frequencies: dict[str, int] = field(default_factory=dict)
+    mop_wash_area_intervals: dict[str, int] = field(default_factory=dict)
+    mop_drying_times: dict[str, int] = field(default_factory=dict)
+    mop_wash_water_modes: dict[str, int] = field(default_factory=dict)
+    mop_wash_temperatures: dict[str, int] = field(default_factory=dict)
+    dust_collection_frequencies: dict[str, int] = field(default_factory=dict)
+    carpet_cleaning_methods: dict[str, int] = field(default_factory=dict)
     # Fault codes this model publishes permanently for hardware it does not
     # have. The firmware image is shared across a product family, so a unit
     # sold with a reduced dock still runs the station checks and reports their
@@ -198,6 +212,26 @@ class ModelSpec:
         return self.fault_reading.live_code(
             data, self.ignored_fault_codes, self.notice_fault_codes
         )
+
+    def raw_fault_codes(self, data: VacuumState) -> list[int] | None:
+        """Return all reported positive codes before filtering."""
+        if "raw_fault_codes" in data:
+            return data["raw_fault_codes"]
+        return self.fault_reading.raw_codes(data)
+
+    def active_fault_codes(self, data: VacuumState) -> list[int] | None:
+        """Return reported codes not ignored by this model."""
+        codes = self.raw_fault_codes(data)
+        if codes is None:
+            return None
+        return [code for code in codes if code not in self.ignored_fault_codes]
+
+    def reported_ignored_fault_codes(self, data: VacuumState) -> list[int] | None:
+        """Return reported codes ignored by this model."""
+        codes = self.raw_fault_codes(data)
+        if codes is None:
+            return None
+        return [code for code in codes if code in self.ignored_fault_codes]
 
     @property
     def supports_room_clean(self) -> bool:

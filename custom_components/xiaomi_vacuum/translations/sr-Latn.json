@@ -90,10 +90,10 @@
                 "state_attributes": {
                     "fan_speed": {
                         "state": {
-                            "silent": "Minimum",
-                            "basic": "Nisko",
+                            "silent": "Tiho",
+                            "basic": "Standardno",
                             "strong": "Jako",
-                            "full_speed": "Maksimum"
+                            "full_speed": "Turbo"
                         }
                     }
                 }
@@ -109,7 +109,7 @@
                     "sweeping": "Čišćenje",
                     "paused": "Pauzirano",
                     "go_charging": "Povratak na bazu",
-                    "go_wash": "Pranje krpe",
+                    "go_wash": "Čišćenje krpe",
                     "remote": "Daljinsko upravljanje",
                     "charged": "Napunjeno",
                     "building_map": "Kreiranje mape",
@@ -128,9 +128,9 @@
                     "station_assisting_cleaned": "Pranje uz pomoć stanice završeno",
                     "go_charge_in_station_assisting_cleaning": "Povratak na bazu na pranje",
                     "drying": "Sušenje krpe",
-                    "dust_collecting": "Pražnjenje posude za prašinu",
+                    "dust_collecting": "Sakupljanje prašine",
                     "water_inspecting": "Provera vode",
-                    "washing_paused": "Pranje krpe pauzirano"
+                    "washing_paused": "Čišćenje krpe pauzirano"
                 }
             },
             "error": {
@@ -181,10 +181,10 @@
                 "name": "Sakupljanje prašine"
             },
             "start_mop_wash": {
-                "name": "Operi krpu"
+                "name": "Očisti krpu"
             },
             "stop_mop_wash": {
-                "name": "Zaustavi pranje krpe"
+                "name": "Zaustavi čišćenje krpe"
             },
             "start_dry": {
                 "name": "Osuši krpu"
@@ -220,7 +220,7 @@
         },
         "select": {
             "sweep_mop_type": {
-                "name": "Režim rada",
+                "name": "Režim čišćenja",
                 "state": {
                     "sweep": "Usisavanje",
                     "mop": "Brisanje",
@@ -237,7 +237,7 @@
                 }
             },
             "mop_water_level": {
-                "name": "Nivo vode za krpu",
+                "name": "Količina vode za brisanje",
                 "state": {
                     "off": "Isključeno",
                     "level_1": "Nivo 1",
@@ -246,7 +246,7 @@
                 }
             },
             "sweep_route": {
-                "name": "Ruta čišćenja",
+                "name": "Putanja čišćenja",
                 "state": {
                     "quick": "Brzo",
                     "daily": "Standardno",
@@ -259,6 +259,67 @@
                     "less_collisions": "Manje sudara",
                     "high_coverage": "Visoka pokrivenost"
                 }
+            },
+            "mop_wash_frequency": {
+                "name": "Učestalost čišćenja mopa",
+                "state": {
+                    "by_room": "Posle svake prostorije",
+                    "by_area": "Po površini",
+                    "by_time": "Po vremenu"
+                }
+            },
+            "mop_wash_area_interval": {
+                "name": "Površina između čišćenja mopa",
+                "state": {
+                    "five_square_meters": "5 m²",
+                    "eight_square_meters": "8 m²",
+                    "ten_square_meters": "10 m²",
+                    "fifteen_square_meters": "15 m²",
+                    "twenty_square_meters": "20 m²",
+                    "twenty_five_square_meters": "25 m²"
+                }
+            },
+            "mop_drying_time": {
+                "name": "Trajanje sušenja",
+                "state": {
+                    "2_hours": "2 sata",
+                    "3_hours": "3 sata",
+                    "4_hours": "4 sata"
+                }
+            },
+            "mop_wash_water_mode": {
+                "name": "Količina vode za čišćenje mopa",
+                "state": {
+                    "deep": "Dubinsko",
+                    "daily": "Dnevno",
+                    "save_water": "Ušteda vode"
+                }
+            },
+            "mop_wash_temperature": {
+                "name": "Temperatura vode za čišćenje mopa",
+                "state": {
+                    "normal": "Normalna",
+                    "warm": "Topla",
+                    "hot": "Vruća",
+                    "smart": "Pametna"
+                }
+            },
+            "dust_collection_frequency": {
+                "name": "Učestalost sakupljanja prašine",
+                "state": {
+                    "once": "Posle svakog čišćenja",
+                    "twice": "Posle 2 čišćenja",
+                    "three_times": "Posle 3 čišćenja"
+                }
+            },
+            "carpet_cleaning_method": {
+                "name": "Način čišćenja tepiha",
+                "state": {
+                    "adaptive": "Prilagodljivo",
+                    "avoid": "Izbegavaj",
+                    "ignore": "Zanemari",
+                    "cross": "Pređi preko"
+                }
             }
         },
         "switch": {
@@ -269,15 +330,27 @@
                 "name": "Pojačanje na tepihu"
             },
             "resume_after_charge": {
-                "name": "Nastavi nakon punjenja"
+                "name": "Nastavak čišćenja"
             },
             "do_not_disturb": {
                 "name": "Ne uznemiravaj"
+            },
+            "mop_wash": {
+                "name": "Automatsko čišćenje mopa"
+            },
+            "auto_dust_collection": {
+                "name": "Automatsko sakupljanje prašine"
+            },
+            "auto_mop_drying": {
+                "name": "Automatsko sušenje mopa"
             }
         },
         "number": {
             "volume": {
                 "name": "Jačina zvuka"
+            },
+            "mop_wash_time_interval": {
+                "name": "Vreme između čišćenja mopa"
             }
         }
     },
@@ -305,6 +378,15 @@
         },
         "custom_cleaning_not_found": {
             "message": "Ne postoji prilagođeno čišćenje pod nazivom {name}. Dostupna: {available}."
+        },
+        "fault_history_cloud_unavailable": {
+            "message": "Veza sa Xiaomi oblakom nije uspostavljena. Povežite se sa oblakom pre čitanja istorije grešaka."
+        },
+        "fault_history_session_expired": {
+            "message": "Sesija Xiaomi oblaka je istekla. Ponovo se povežite pre čitanja istorije grešaka."
+        },
+        "fault_history_read_failed": {
+            "message": "Nije moguće pročitati istoriju grešaka iz Xiaomi oblaka."
         }
     },
     "services": {
@@ -331,6 +413,10 @@
                     "description": "Naziv prilagođenog čišćenja kako je prikazan u aplikaciji Mi Home. Velika i mala slova se ne razlikuju."
                 }
             }
+        },
+        "refresh_fault_history": {
+            "name": "Osveži istoriju grešaka",
+            "description": "Čita do 50 najnovijih događaja o greškama uređaja iz Xiaomi oblaka bez označavanja obaveštenja kao pročitanih. Vraća događaje u odgovoru akcije. Zahteva aktivnu vezu sa oblakom."
         }
     },
     "common": {

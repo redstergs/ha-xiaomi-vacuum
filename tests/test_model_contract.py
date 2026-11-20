@@ -5,6 +5,7 @@ from __future__ import annotations
 import pytest
 from homeassistant.components.vacuum.const import VacuumActivity
 from homeassistant.helpers import entity_registry as er
+from xiaomi_vacuum_sdk import ActionAddress
 
 from custom_components.xiaomi_vacuum.binary_sensor import _BINARY_SENSOR_CLASSES
 from custom_components.xiaomi_vacuum.button import _BUTTON_CLASSES
@@ -38,6 +39,13 @@ _VALUE_TABLES = {
     Property.MOP_WATER_LEVEL: "mop_water_levels",
     Property.SWEEP_ROUTE: "sweep_routes",
     Property.OBSTACLE_AVOIDANCE_STRATEGY: "obstacle_avoidances",
+    Property.MOP_WASH_FREQUENCY: "mop_wash_frequencies",
+    Property.MOP_WASH_AREA_INTERVAL: "mop_wash_area_intervals",
+    Property.MOP_DRYING_TIME: "mop_drying_times",
+    Property.MOP_WASH_WATER_MODE: "mop_wash_water_modes",
+    Property.MOP_WASH_TEMPERATURE: "mop_wash_temperatures",
+    Property.DUST_COLLECTION_FREQUENCY: "dust_collection_frequencies",
+    Property.CARPET_CLEANING_METHOD: "carpet_cleaning_methods",
     Property.CHARGING_STATE: "charging_state_slugs",
 }
 
@@ -141,3 +149,27 @@ async def test_setup_model_sets_up_the_requested_model(hass, model, setup_model)
     entry, device = await setup_model(model)
     assert entry.runtime_data.spec is MODELS[model]
     assert device.info.return_value.model == model
+
+
+async def test_every_send_command_reaches_the_device(
+    hass, model, setup_integration_of_model, mock_miot_device_of_model
+):
+    registry = er.async_get(hass)
+    vacuum_entity_id = next(
+        entry.entity_id
+        for entry in er.async_entries_for_config_entry(
+            registry, setup_integration_of_model.entry_id
+        )
+        if entry.domain == "vacuum"
+    )
+    for command, action in MODELS[model].send_commands.items():
+        mock_miot_device_of_model.call_action.reset_mock()
+        await hass.services.async_call(
+            "vacuum",
+            "send_command",
+            {"entity_id": vacuum_entity_id, "command": command},
+            blocking=True,
+        )
+        mock_miot_device_of_model.call_action.assert_any_call(
+            ActionAddress(siid=action["siid"], aiid=action["aiid"])
+        )
