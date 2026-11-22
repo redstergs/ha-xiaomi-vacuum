@@ -26,9 +26,9 @@ if TYPE_CHECKING:
     from cryptography.hazmat.primitives.ciphers import CipherContext
 
     from ..data import JsonObject, JsonValue  # noqa: TID252
+    from ..spec.addresses import MiotEventAddress  # noqa: TID252
     from .responses import (
         DevicesResult,
-        FaultResult,
         HomeEntry,
         HomesResult,
         MapUrlResult,
@@ -47,6 +47,7 @@ _HTTP_AUTH_STATUSES = frozenset(
     }
 )
 _QR_DEFAULT_LOCALE = "en_US"
+_SERVICE_LOGIN_URL = "https://account.xiaomi.com/pass/serviceLogin"
 
 
 class _XiaomiCloudConnector:
@@ -55,14 +56,19 @@ class _XiaomiCloudConnector:
     def __init__(self) -> None:
         """Initialize a fresh session with the standard SDK cookies."""
         self._agent = self._gen_agent()
-        self._device_id = self._gen_device_id()
         self._session = requests.session()
         for domain in ("mi.com", "xiaomi.com"):
             self._session.cookies.set("sdkVersion", "accountsdk-18.8.15", domain=domain)
-            self._session.cookies.set("deviceId", self._device_id, domain=domain)
+        self._set_device_id(self._gen_device_id())
         self._ssecurity: str | None = None
         self._user_id: str | None = None
         self._service_token: str | None = None
+        self._pass_token: str | None = None
+
+    def _set_device_id(self, device_id: str) -> None:
+        self._device_id = device_id
+        for domain in ("mi.com", "xiaomi.com"):
+            self._session.cookies.set("deviceId", device_id, domain=domain)
 
     @property
     def ssecurity(self) -> str | None:
@@ -79,11 +85,70 @@ class _XiaomiCloudConnector:
         """The session's service token, or None before login."""
         return self._service_token
 
-    def restore_session(self, ssecurity: str, user_id: str, service_token: str) -> None:
+    @property
+    def pass_token(self) -> str | None:
+        """The long-lived login that can renew the session, if known."""
+        return self._pass_token
+
+    @property
+    def device_id(self) -> str:
+        """The client id this login was issued to."""
+        return self._device_id
+
+    def restore_session(
+        self,
+        ssecurity: str,
+        user_id: str,
+        service_token: str,
+        pass_token: str | None = None,
+        device_id: str | None = None,
+    ) -> None:
         """Adopt previously issued session tokens instead of a fresh QR login."""
         self._ssecurity = ssecurity
         self._user_id = user_id
         self._service_token = service_token
+        self._pass_token = pass_token
+        if device_id:
+            self._set_device_id(device_id)
+
+    def refresh_session(self) -> bool:
+        """
+        Trade the long-lived ``passToken`` for a fresh session, without a QR scan.
+
+        The ``serviceToken`` lives for weeks; the ``passToken`` issued by the
+        same login outlives it and lets ``serviceLogin`` hand out a new
+        session directly. Returns False when Xiaomi no longer accepts the
+        ``passToken`` (it answers with a login challenge instead) — only then
+        is a new QR scan needed.
+        """
+        if not self._pass_token or not self._user_id:
+            return False
+        response = self._session.get(
+            _SERVICE_LOGIN_URL,
+            params={"sid": "xiaomiio", "_json": "true"},
+            cookies={"userId": self._user_id, "passToken": self._pass_token},
+            timeout=10,
+        )
+        if response.status_code != _HTTP_OK:
+            msg = f"Session refresh failed with HTTP {response.status_code}"
+            raise XiaomiCloudConnectionError(msg)
+        body = self._to_json(response.text)
+        if not isinstance(body, dict):
+            return False
+        ssecurity = body.get("ssecurity")
+        location = body.get("location")
+        if not isinstance(ssecurity, str) or not isinstance(location, str):
+            return False
+        if not ssecurity or not location:
+            LOGGER.debug("Session refresh declined; keys: %s", response_key_names(body))
+            return False
+        if not self._fetch_service_token(location):
+            return False
+        self._ssecurity = ssecurity
+        pass_token = body.get("passToken")
+        if isinstance(pass_token, str) and pass_token:
+            self._pass_token = pass_token
+        return True
 
     def start_qr_login(self) -> tuple[bytes, str, int]:
         """Request a fresh QR code; returns (png_bytes, long_polling_url, timeout_s)."""
@@ -278,19 +343,10 @@ class _XiaomiCloudConnector:
             return None
         return cast("bytes", response.content)
 
-    def get_device_fault_texts(
-        self, country: str, did: str, limit: int = 50
-    ) -> dict[int, str]:
-        """
-        Map fault codes to their localized text from the device message feed.
-
-        The vacuum reports a fault as a numeric code on its `fault` property
-        (siid 2 / piid 3). Xiaomi's cloud emits a localized push message
-        (type 6) for each fault whose `params.body.value` carries that code and
-        whose `title` is the human-readable text in the account's language.
-        We read that feed and build `{code: title}`. `force_read` is kept false
-        so we never alter the user's unread state.
-        """
+    def _get_fault_messages(
+        self, country: str, did: str, limit: int, *, strict: bool
+    ) -> list[JsonValue]:
+        """Read the shared message feed without changing notification status."""
         url = self._api_url(country) + "/v2/message/v2/list"
         params = {
             "data": json.dumps(
@@ -303,20 +359,82 @@ class _XiaomiCloudConnector:
                 }
             )
         }
-        response = self._encrypted_call(url, params)
+        response = self._encrypted_call(url, params, raise_for_status=strict)
+        result = response.get("result") if isinstance(response, dict) else None
+        messages = result.get("messages") if isinstance(result, dict) else None
+        if isinstance(messages, list):
+            return messages
+        return []
+
+    @staticmethod
+    def _fault_code(value: JsonValue) -> int | None:
+        if not isinstance(value, list) or not value:
+            return None
+        raw_code = value[0]
+        if not isinstance(raw_code, (str, int, float)) or isinstance(raw_code, bool):
+            return None
+        try:
+            code = int(raw_code)
+        except ValueError, TypeError, OverflowError:
+            return None
+        if code <= 0 or (isinstance(raw_code, float) and raw_code != code):
+            return None
+        return code
+
+    @staticmethod
+    def _parse_fault_message(
+        message: JsonValue, *, event_id: str | None
+    ) -> dict[str, str | int] | None:
+        """Extract the fault data of a message filed under ``event_id``, if given."""
+        if not isinstance(message, dict):
+            return None
+        params = message.get("params")
+        body = params.get("body") if isinstance(params, dict) else None
+        if not isinstance(body, dict):
+            return None
+        if event_id is not None and body.get("event") != event_id:
+            return None
+        code = _XiaomiCloudConnector._fault_code(body.get("value") or body.get("extra"))
+        if code is None:
+            return None
+        event: dict[str, str | int] = {"code": code}
+        title = message.get("title")
+        if isinstance(title, str) and title:
+            event["text"] = title
+        timestamp = message.get("ctime") or message.get("time")
+        if (
+            isinstance(timestamp, int)
+            and not isinstance(timestamp, bool)
+            and timestamp > 0
+        ):
+            event["timestamp"] = timestamp
+        return event
+
+    def get_device_fault_messages(
+        self, country: str, did: str, fault_event: MiotEventAddress, limit: int = 50
+    ) -> list[dict[str, str | int]]:
+        """Return up to 50 recent ``fault_event`` messages without marking them read."""
+        limit = min(50, max(1, limit))
+        event_id = f"{fault_event['siid']}.{fault_event['eiid']}"
+        messages = self._get_fault_messages(country, did, limit, strict=True)
+        events: list[dict[str, str | int]] = []
+        for message in messages:
+            event = self._parse_fault_message(message, event_id=event_id)
+            if event is not None:
+                events.append(event)
+                if len(events) == limit:
+                    break
+        return events
+
+    def get_device_fault_texts(
+        self, country: str, did: str, limit: int = 50
+    ) -> dict[int, str]:
+        """Map fault codes to localized text, retaining legacy feed compatibility."""
         texts: dict[int, str] = {}
-        if not response or not (result := response.get("result")):
-            return texts
-        for message in cast("FaultResult", result).get("messages") or []:
-            params_obj = message.get("params")
-            body = params_obj.get("body") if params_obj else None
-            value = (body.get("value") or body.get("extra")) if body else None
-            title = message.get("title")
-            if title and value:
-                try:
-                    texts.setdefault(int(value[0]), title)
-                except ValueError, TypeError, KeyError, IndexError:
-                    continue
+        for message in self._get_fault_messages(country, did, limit, strict=False):
+            event = self._parse_fault_message(message, event_id=None)
+            if event is not None and isinstance(title := event.get("text"), str):
+                texts.setdefault(int(event["code"]), title)
         return texts
 
     @staticmethod

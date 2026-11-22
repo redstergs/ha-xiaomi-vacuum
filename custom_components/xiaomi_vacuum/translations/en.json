@@ -90,10 +90,10 @@
                 "state_attributes": {
                     "fan_speed": {
                         "state": {
-                            "silent": "Minimum",
-                            "basic": "Low",
+                            "silent": "Silent",
+                            "basic": "Standard",
                             "strong": "Strong",
-                            "full_speed": "Maximum"
+                            "full_speed": "Turbo"
                         }
                     }
                 }
@@ -109,7 +109,7 @@
                     "sweeping": "Cleaning",
                     "paused": "Paused",
                     "go_charging": "Returning to dock",
-                    "go_wash": "Washing mop",
+                    "go_wash": "Cleaning mop",
                     "remote": "Remote control",
                     "charged": "Charged",
                     "building_map": "Mapping",
@@ -128,9 +128,9 @@
                     "station_assisting_cleaned": "Station-assisted washing finished",
                     "go_charge_in_station_assisting_cleaning": "Returning to dock to wash",
                     "drying": "Drying mop",
-                    "dust_collecting": "Emptying dust bin",
+                    "dust_collecting": "Collecting dust",
                     "water_inspecting": "Checking water",
-                    "washing_paused": "Mop washing paused"
+                    "washing_paused": "Mop cleaning paused"
                 }
             },
             "error": {
@@ -140,7 +140,7 @@
                 "name": "Error code"
             },
             "mop_life": {
-                "name": "Mop life"
+                "name": "Mop pad life"
             },
             "side_brush_life": {
                 "name": "Side brush life"
@@ -161,7 +161,7 @@
                 "name": "Filter time left"
             },
             "mop_time_left": {
-                "name": "Mop time left"
+                "name": "Mop pad time left"
             },
             "drying_time_left": {
                 "name": "Drying time left"
@@ -181,10 +181,10 @@
                 "name": "Collect dust"
             },
             "start_mop_wash": {
-                "name": "Wash mop"
+                "name": "Clean mop"
             },
             "stop_mop_wash": {
-                "name": "Stop washing mop"
+                "name": "Stop cleaning mop"
             },
             "start_dry": {
                 "name": "Dry mop"
@@ -202,7 +202,7 @@
                 "name": "Reset filter"
             },
             "reset_mop": {
-                "name": "Reset mop"
+                "name": "Reset mop pad"
             }
         },
         "binary_sensor": {
@@ -220,16 +220,16 @@
         },
         "select": {
             "sweep_mop_type": {
-                "name": "Mode",
+                "name": "Cleanup mode",
                 "state": {
-                    "sweep": "Sweep",
-                    "mop": "Mop",
-                    "sweep_mop": "Sweep and mop",
-                    "sweep_before_mopping": "Sweep before mopping"
+                    "sweep": "Vacuuming",
+                    "mop": "Mopping",
+                    "sweep_mop": "Vacuuming and mopping",
+                    "sweep_before_mopping": "Vacuuming before mopping"
                 }
             },
             "clean_times": {
-                "name": "Clean times",
+                "name": "Cleanup times",
                 "state": {
                     "one_time": "Once",
                     "two_times": "Twice",
@@ -237,7 +237,7 @@
                 }
             },
             "mop_water_level": {
-                "name": "Mop water level",
+                "name": "Mopping water output",
                 "state": {
                     "off": "Off",
                     "level_1": "Level 1",
@@ -246,7 +246,7 @@
                 }
             },
             "sweep_route": {
-                "name": "Sweep route",
+                "name": "Cleanup path",
                 "state": {
                     "quick": "Quick",
                     "daily": "Standard",
@@ -259,6 +259,67 @@
                     "less_collisions": "Less collisions",
                     "high_coverage": "High coverage"
                 }
+            },
+            "mop_wash_frequency": {
+                "name": "Mop cleaning frequency",
+                "state": {
+                    "by_room": "Every room",
+                    "by_area": "By area",
+                    "by_time": "By time"
+                }
+            },
+            "mop_wash_area_interval": {
+                "name": "Mop cleaning area interval",
+                "state": {
+                    "five_square_meters": "5 m²",
+                    "eight_square_meters": "8 m²",
+                    "ten_square_meters": "10 m²",
+                    "fifteen_square_meters": "15 m²",
+                    "twenty_square_meters": "20 m²",
+                    "twenty_five_square_meters": "25 m²"
+                }
+            },
+            "mop_drying_time": {
+                "name": "Drying duration",
+                "state": {
+                    "2_hours": "2 hours",
+                    "3_hours": "3 hours",
+                    "4_hours": "4 hours"
+                }
+            },
+            "mop_wash_water_mode": {
+                "name": "Mop cleaning water output",
+                "state": {
+                    "deep": "Deep",
+                    "daily": "Daily",
+                    "save_water": "Save water"
+                }
+            },
+            "mop_wash_temperature": {
+                "name": "Mop cleaning water temperature",
+                "state": {
+                    "normal": "Normal",
+                    "warm": "Warm",
+                    "hot": "Hot",
+                    "smart": "Smart"
+                }
+            },
+            "dust_collection_frequency": {
+                "name": "Dust collection frequency",
+                "state": {
+                    "once": "Every job",
+                    "twice": "Every 2 jobs",
+                    "three_times": "Every 3 jobs"
+                }
+            },
+            "carpet_cleaning_method": {
+                "name": "Carpet cleanup preference",
+                "state": {
+                    "adaptive": "Adaptive",
+                    "avoid": "Avoid",
+                    "ignore": "Ignore",
+                    "cross": "Cross"
+                }
             }
         },
         "switch": {
@@ -269,15 +330,27 @@
                 "name": "Carpet boost"
             },
             "resume_after_charge": {
-                "name": "Resume after charging"
+                "name": "Cleanup resumption"
             },
             "do_not_disturb": {
                 "name": "Do not disturb"
+            },
+            "mop_wash": {
+                "name": "Auto mop cleaning"
+            },
+            "auto_dust_collection": {
+                "name": "Automatic dust collection"
+            },
+            "auto_mop_drying": {
+                "name": "Auto mop drying"
             }
         },
         "number": {
             "volume": {
                 "name": "Volume"
+            },
+            "mop_wash_time_interval": {
+                "name": "Mop cleaning time interval"
             }
         }
     },
@@ -305,6 +378,18 @@
         },
         "custom_cleaning_not_found": {
             "message": "No custom cleaning named {name}. Available: {available}."
+        },
+        "fault_history_cloud_unavailable": {
+            "message": "The Xiaomi cloud is not connected. Connect to the cloud before reading fault history."
+        },
+        "fault_history_session_expired": {
+            "message": "The Xiaomi cloud session has expired. Reconnect before reading fault history."
+        },
+        "fault_history_read_failed": {
+            "message": "Could not read fault history from the Xiaomi cloud."
+        },
+        "fault_history_unsupported": {
+            "message": "Fault history is not supported on the {model}."
         }
     },
     "services": {
@@ -331,6 +416,10 @@
                     "description": "Name of the custom cleaning as shown in the Mi Home app. Case is ignored."
                 }
             }
+        },
+        "refresh_fault_history": {
+            "name": "Refresh fault history",
+            "description": "Reads up to 50 recent device fault events from the Xiaomi cloud without marking notifications as read. Returns the events in the action response. Requires an active cloud connection."
         }
     },
     "common": {

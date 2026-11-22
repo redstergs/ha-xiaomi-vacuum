@@ -18,7 +18,7 @@ if TYPE_CHECKING:
     from homeassistant.components.vacuum.const import VacuumActivity
 
     from ..data import VacuumState  # noqa: TID252
-    from .addresses import MiotActionAddress, MiotPropertyBinding
+    from .addresses import MiotActionAddress, MiotEventAddress, MiotPropertyBinding
     from .entity_key import EntityKey
     from .fault_reading import FaultReading
     from .model_actions import ModelActions
@@ -46,6 +46,13 @@ MAPPING_FIELDS: tuple[str, ...] = (
     "charging_state_slugs",
     "sweep_routes",
     "obstacle_avoidances",
+    "mop_wash_frequencies",
+    "mop_wash_area_intervals",
+    "mop_drying_times",
+    "mop_wash_water_modes",
+    "mop_wash_temperatures",
+    "dust_collection_frequencies",
+    "carpet_cleaning_methods",
 )
 
 
@@ -68,6 +75,13 @@ class ModelSpec:
     charging_state_slugs: dict[int, str] = field(default_factory=dict)
     sweep_routes: dict[str, int] = field(default_factory=dict)
     obstacle_avoidances: dict[str, int] = field(default_factory=dict)
+    mop_wash_frequencies: dict[str, int] = field(default_factory=dict)
+    mop_wash_area_intervals: dict[str, int] = field(default_factory=dict)
+    mop_drying_times: dict[str, int] = field(default_factory=dict)
+    mop_wash_water_modes: dict[str, int] = field(default_factory=dict)
+    mop_wash_temperatures: dict[str, int] = field(default_factory=dict)
+    dust_collection_frequencies: dict[str, int] = field(default_factory=dict)
+    carpet_cleaning_methods: dict[str, int] = field(default_factory=dict)
     # Fault codes this model publishes permanently for hardware it does not
     # have. The firmware image is shared across a product family, so a unit
     # sold with a reduced dock still runs the station checks and reports their
@@ -81,6 +95,10 @@ class ModelSpec:
     # Error / Error code sensors but do not force VacuumActivity.ERROR, the way
     # other vacuum integrations treat dismissable warnings.
     notice_fault_codes: frozenset[int] = frozenset()
+    # The event the Xiaomi cloud message feed files this model's faults under,
+    # which can differ from the event list of its published spec. None leaves
+    # the fault history action unsupported.
+    fault_event: MiotEventAddress | None = None
     room_cleaning: RoomCleaning | None = None
     map_format: MapFormat = _XIAOMI_MAP_FORMAT
 
@@ -195,9 +213,29 @@ class ModelSpec:
 
     def live_fault_code(self, data: VacuumState) -> int | None:
         """Return the live fault code of a polled state, phantom faults dropped."""
-        return self.fault_reading.live_code(
-            data, self.ignored_fault_codes, self.notice_fault_codes
+        return self.primary_fault_code(self.raw_fault_codes(data))
+
+    def raw_fault_codes(self, data: VacuumState) -> list[int] | None:
+        """Decode every positive code the polled state reports, before filtering."""
+        return self.fault_reading.raw_codes(data)
+
+    def primary_fault_code(self, codes: list[int] | None) -> int | None:
+        """Return the code the entities report among the decoded ``codes``."""
+        return self.fault_reading.primary_code(
+            codes, self.ignored_fault_codes, self.notice_fault_codes
         )
+
+    def active_fault_codes(self, codes: list[int] | None) -> list[int] | None:
+        """Return the decoded ``codes`` this model does not ignore."""
+        if codes is None:
+            return None
+        return [code for code in codes if code not in self.ignored_fault_codes]
+
+    def reported_ignored_fault_codes(self, codes: list[int] | None) -> list[int] | None:
+        """Return the decoded ``codes`` this model ignores."""
+        if codes is None:
+            return None
+        return [code for code in codes if code in self.ignored_fault_codes]
 
     @property
     def supports_room_clean(self) -> bool:

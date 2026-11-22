@@ -5,6 +5,14 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, NotRequired, Protocol, TypedDict
 
+from .const import (
+    CONF_CLOUD_DEVICE_ID,
+    CONF_CLOUD_PASS_TOKEN,
+    CONF_CLOUD_SERVICE_TOKEN,
+    CONF_CLOUD_SSECURITY,
+    CONF_CLOUD_USER_ID,
+)
+
 if TYPE_CHECKING:
     from homeassistant.config_entries import ConfigEntry
     from homeassistant.loader import Integration
@@ -71,9 +79,21 @@ class VacuumState(TypedDict):
     resume_after_charge: NotRequired[int | None]
     do_not_disturb: NotRequired[bool | None]
     volume: NotRequired[int | None]
+    mop_wash: NotRequired[bool | None]
+    mop_wash_frequency: NotRequired[int | None]
+    mop_wash_area_interval: NotRequired[int | None]
+    mop_wash_time_interval: NotRequired[int | None]
+    mop_drying_time: NotRequired[int | None]
+    auto_dust_collection: NotRequired[bool | None]
+    auto_mop_drying: NotRequired[bool | None]
+    mop_wash_water_mode: NotRequired[int | None]
+    mop_wash_temperature: NotRequired[int | None]
+    dust_collection_frequency: NotRequired[int | None]
+    carpet_cleaning_method: NotRequired[int | None]
     # Live fault payload: a JSON fault-ids list (X20 Max) or a plain code (S20+).
     fault_ids: NotRequired[str | None]
     fault: NotRequired[int | None]
+    raw_fault_codes: NotRequired[list[int] | None]
     fault_text: NotRequired[str]
 
 
@@ -119,6 +139,24 @@ class CloudSessionTokens(TypedDict):
     ssecurity: str | None
     service_token: str | None
     user_id: str | None
+    # Long-lived login used to renew the session without a new QR scan;
+    # absent on sessions created before it was stored.
+    pass_token: NotRequired[str | None]
+    device_id: NotRequired[str | None]
+
+
+def cloud_session_data(tokens: CloudSessionTokens) -> dict[str, str | None]:
+    """Map live session tokens onto their config-entry keys."""
+    data = {
+        CONF_CLOUD_SSECURITY: tokens["ssecurity"],
+        CONF_CLOUD_SERVICE_TOKEN: tokens["service_token"],
+        CONF_CLOUD_USER_ID: tokens["user_id"],
+    }
+    # Only a QR login yields these; never wipe stored ones with a blank.
+    if pass_token := tokens.get("pass_token"):
+        data[CONF_CLOUD_PASS_TOKEN] = pass_token
+        data[CONF_CLOUD_DEVICE_ID] = tokens.get("device_id")
+    return data
 
 
 class DeviceInfoLike(Protocol):

@@ -57,12 +57,41 @@ async def test_ov71_raises_no_unsupported_model_repair(hass, setup_integration_o
     assert registry.async_get_issue(DOMAIN, issue_id) is None
 
 
-async def test_ov71_creates_all_five_selects(hass, setup_integration_ov71):
+async def test_ov71_creates_all_six_selects(hass, setup_integration_ov71):
     states = hass.states.async_all("select")
     entity_ids = {s.entity_id for s in states}
-    assert len(states) == 5
-    assert "select.s40_pro_sweep_route" in entity_ids
+    assert len(states) == 6
+    assert "select.s40_pro_carpet_cleanup_preference" in entity_ids
+    assert "select.s40_pro_cleanup_path" in entity_ids
     assert "select.s40_pro_obstacle_avoidance" in entity_ids
+
+
+async def test_ov71_has_the_robot_settings_but_no_dock_settings(
+    hass, setup_integration_ov71
+):
+    """Settings its own spec publishes are kept; the plain dock gets none."""
+    switches = {s.entity_id for s in hass.states.async_all("switch")}
+    assert switches == {
+        "switch.s40_pro_carpet_boost",
+        "switch.s40_pro_cleanup_resumption",
+        "switch.s40_pro_child_lock",
+        "switch.s40_pro_do_not_disturb",
+    }
+    numbers = {s.entity_id for s in hass.states.async_all("number")}
+    assert numbers == {"number.s40_pro_volume"}
+    for key in (
+        EntityKey.MOP_WASH_SWITCH,
+        EntityKey.MOP_WASH_FREQUENCY_SELECT,
+        EntityKey.MOP_WASH_AREA_INTERVAL_SELECT,
+        EntityKey.MOP_WASH_TIME_INTERVAL_NUMBER,
+        EntityKey.MOP_DRYING_TIME_SELECT,
+        EntityKey.AUTO_DUST_COLLECTION_SWITCH,
+        EntityKey.AUTO_MOP_DRYING_SWITCH,
+        EntityKey.MOP_WASH_WATER_MODE_SELECT,
+        EntityKey.MOP_WASH_TEMPERATURE_SELECT,
+        EntityKey.DUST_COLLECTION_FREQUENCY_SELECT,
+    ):
+        assert key not in OV71GL.entities
 
 
 async def test_ov71_has_only_the_consumable_reset_buttons(hass, setup_integration_ov71):
@@ -72,13 +101,13 @@ async def test_ov71_has_only_the_consumable_reset_buttons(hass, setup_integratio
         "button.s40_pro_reset_main_brush",
         "button.s40_pro_reset_side_brush",
         "button.s40_pro_reset_filter",
-        "button.s40_pro_reset_mop",
+        "button.s40_pro_reset_mop_pad",
     }
 
 
 async def test_ov71_inherits_the_consumable_hours_left(hass, setup_integration_ov71):
     """Its own spec publishes them at the X20 Max's addresses."""
-    for consumable in ("mop", "main_brush", "side_brush", "filter"):
+    for consumable in ("mop_pad", "main_brush", "side_brush", "filter"):
         state = hass.states.get(f"sensor.s40_pro_{consumable}_time_left")
         assert state is not None
         assert state.state not in ("unknown", "unavailable")
@@ -106,7 +135,7 @@ async def test_ov71_send_command_has_no_dock_commands(hass, setup_integration_ov
 
 
 async def test_ov71_clean_times_offers_three_repetitions(hass, setup_integration_ov71):
-    select = hass.states.get("select.s40_pro_clean_times")
+    select = hass.states.get("select.s40_pro_cleanup_times")
     assert select is not None
     assert select.attributes["options"] == ["one_time", "two_times", "three_times"]
 
@@ -204,7 +233,7 @@ async def test_ov71_parses_the_room_payload_a_real_device_publishes(
     ]
 
 
-@pytest.mark.parametrize("code", [210005, 210020])
+@pytest.mark.parametrize("code", [210013, 210020])
 async def test_ov71_maintenance_notice_does_not_force_error(
     hass, setup_integration_ov71, code
 ):
